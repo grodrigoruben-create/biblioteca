@@ -29,7 +29,7 @@ $routes->post('Administrador/Autor/guardar', 'Autor_controlador::guardar');     
 
 use CodeIgniter\Router\RouteCollection;
 use App\Controllers\Cliente\Carrito_controlador;
-use App\Controllers\Usuario_controlador;
+use App\Controllers\Autentificacion\Usuario_controlador;
 /**
  * @var RouteCollection $routes
  */
