@@ -21,46 +21,45 @@ class Usuario_controlador extends BaseController
 
     public function register()
     {
-        $validation = \Config\Services::validation();
         $rules = [
-            'nombre' => 'required|min_length[3]|max_length[50]',
+            'nombre'    => 'required|min_length[3]|max_length[50]',
             'apellidos' => 'required|min_length[3]|max_length[50]',
-            'email' => [
-                'rules' => 'required|valid_email|is_unique[usuarios.email]',
+            'email'     => [
+                'rules'  => 'required|valid_email|is_unique[usuarios.email]',
                 'errors' => [
                     'is_unique' => 'El correo electrónico ya está registrado.'
                 ]
-            ], // FIX: 'errors' movido dentro de 'email' (antes estaba como clave hermana a nivel de $rules)
-            'password' => [
-                'label' => 'Contraseña',
-                'rules' => 'required|min_length[8]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/]',
+            ],
+            'password'  => [
+                'label'  => 'Contraseña',
+                'rules'  => 'required|min_length[8]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/]',
                 'errors' => [
-                    'regex_match' => 'La contraseña debe tener al menos 8 caracteres, incluyendo una letra mayúscula, una letra minúscula, un número y un carácter especial.',
-                    'min_length' => 'La contraseña debe tener al menos 8 caracteres.',
+                    'regex_match' => 'La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial.',
+                    'min_length'  => 'La contraseña debe tener al menos 8 caracteres.',
                 ],
-            ], // FIX: mensajes de 'password' movidos dentro de la propia regla
+            ],
         ];
-       if (!$this->validate($rules)) {
-            return view('Registro', [
-                'validation' => $this->validator
-            ]);
+
+        // Aplicamos el patrón PRG también en el registro para evitar reenvíos de formularios al recargar
+        if (!$this->validate($rules)) {
+            return redirect()->back()
+                             ->withInput()
+                             ->with('validation', $this->validator);
         }
 
         $model = new Usuario_modelo();
         $data = [
-            'nombre' => $this->request->getPost('nombre'),
+            'nombre'    => $this->request->getPost('nombre'),
             'apellidos' => $this->request->getPost('apellidos'),
-            'email' => $this->request->getPost('email'),
-            'hash' => password_hash($this->request->getPost('password'), PASSWORD_DEFAULT),
-            'rol' => 'cliente'
+            'email'     => $this->request->getPost('email'),
+            'hash'      => password_hash($this->request->getPost('password'), PASSWORD_DEFAULT),
+            'rol'       => 'cliente'
         ];
 
         if ($model->insert($data)) {
-            session()->setFlashdata('exito', 'Registro completado con éxito. Ahora puedes iniciar sesión.');
-            return redirect()->to('/login');
+            return redirect()->to('/login')->with('exito', 'Registro completado con éxito. Ahora puedes iniciar sesión.');
         } else {
-            session()->setFlashdata('error', 'Error al registrar el usuario. Por favor, inténtalo de nuevo.');
-            return redirect()->back()->withInput();
+            return redirect()->back()->withInput()->with('error', 'Error al registrar el usuario. Por favor, inténtalo de nuevo.');
         }
     }
     
@@ -81,20 +80,20 @@ class Usuario_controlador extends BaseController
                 'apellidos'   => $user['apellidos'],
                 'email'       => $user['email'],
                 'rol'         => $user['rol'],
-                'isLoggedIn'  => true,   // antes: isLogggedIn (typo, 3 "g")
+                'isLoggedIn'  => true,
             ];
 
             $session->set($sessionData);
             $session->regenerate();
             
-                return redirect()->to('/dashboard'); // antes: return view('index')
+            return redirect()->to('/dashboard');
         }
 
-        $session->setFlashdata('msg_error', 'Correo o contraseña incorrectos.');
-        return redirect()->to('/')->withInput();
+        // CORRECCIÓN: Redirigir de regreso a /login en lugar de la raíz /
+        return redirect()->to('/login')->withInput()->with('msg_error', 'Correo o contraseña incorrectos.');
     }
 
-    public function logout ()
+    public function logout()
     {
         session()->destroy();
         return redirect()->to('/login');

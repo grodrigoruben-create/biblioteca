@@ -11,7 +11,7 @@ use App\Controllers\Autor_controlador;
  * @var RouteCollection $routes
  */
 
-// Landing y Públicas
+// Landing y Públicas (Catálogo principal)
 $routes->get('/', [Carrito_controlador::class, 'index']);
 
 // Autenticación
@@ -25,10 +25,12 @@ $routes->get('logout', [Usuario_controlador::class, 'logout']);
 $routes->group('', ['filter' => 'auth'], function ($routes) {
     $routes->get('dashboard', [Dashboard_controlador::class, 'index']);
 
+    // Gestión de Autores (Panel de Administración)
     $routes->get('Administrador/Autor', [Autor_controlador::class, 'index']);
     $routes->get('Administrador/Autor/crear', [Autor_controlador::class, 'crear']);
     $routes->post('Administrador/Autor/guardar', [Autor_controlador::class, 'guardar']);
 
+    // Gestión de Libros (Panel de Administración)
     $routes->get('Administrador/Libro', [Libro_controlador::class, 'index']);
     $routes->get('Administrador/Libro/crear', [Libro_controlador::class, 'crear']);
     $routes->post('Administrador/Libro/guardar', [Libro_controlador::class, 'guardar']);
@@ -36,9 +38,8 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
 
 // Tienda y Carrito
 $routes->get('libreria/catalogo', [Carrito_controlador::class, 'index']);
-$routes->post('libreria/carrito/agregar', [Carrito_controlador::class, 'add']);
+$routes->post('libreria/carrito/add', [Carrito_controlador::class, 'add']); // Corregido: coincide con el formulario (add en lugar de agregar)
 $routes->get('libreria/carrito', [Carrito_controlador::class, 'show']);
-$routes->get('libreria/carrito/eliminar/(:segment)', [Carrito_controlador::class, 'remove']);
+$routes->get('libreria/carrito/eliminar/(:segment)', [Carrito_controlador::class, 'remove/$1']); // Corregido: se agrega '$1' para pasar la clave al método
 $routes->get('libreria/carrito/vaciar', [Carrito_controlador::class, 'clear']);
-$routes->get('libreria/vaciar_carrito', [Carrito_controlador::class, 'clear']);
 $routes->get('libros/buscar', [Carrito_controlador::class, 'index']);

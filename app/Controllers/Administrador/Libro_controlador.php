@@ -5,8 +5,8 @@ use App\Models\Libro_modelo;
 use App\Models\Autor_modelo;
 use App\Models\LibroAutor_modelo;
 
-class Libro_controlador extends BaseController{
-
+class Libro_controlador extends BaseController
+{
     public function index()
     {
         $libroModel = new Libro_modelo();
@@ -18,31 +18,26 @@ class Libro_controlador extends BaseController{
     {
         $autorModel = new Autor_modelo();
         $data['autores'] = $autorModel->findAll();
-        return view('Libro_crear', $data);
+        return view('form_libro', $data);
     }
 
     public function guardar()
     {
-        $rules = [
-            'titulo'     => 'required|min_length[2]|max_length[200]',
-            'isbn'       => 'required|min_length[10]|max_length[17]|is_unique[libros.isbn]',
-            'formato'    => 'required|in_list[pasta dura,rustico,digital]',
-            'precio'     => 'required|decimal',
-            'stock'      => 'required|integer|greater_than_equal_to[0]',
-            'autores'    => 'required',
-            'autores.*'  => 'is_natural_no_zero',
+        // 1. Validar ÚNICAMENTE lo que NO pertenece a la tabla libros
+        $reglasExtra = [
+            'autores'   => 'required',
+            'autores.*' => 'is_natural_no_zero',
         ];
 
-        if (!$this->validate($rules)) {
-            $autorModel = new Autor_modelo();
-            return view('Libro_crear', [
-                'validation' => $this->validator,
-                'autores'    => $autorModel->findAll(),
-            ]);
+        if (!$this->validate($reglasExtra)) {
+            return redirect()->back()->withInput()->with('errores', $this->validator->getErrors());
         }
 
+        $db = \Config\Database::connect();
+        $db->transStart(); // Iniciamos la transacción
+
         $libroModel = new Libro_modelo();
-        $data = [
+        $dataLibro = [
             'titulo'  => $this->request->getPost('titulo'),
             'isbn'    => $this->request->getPost('isbn'),
             'formato' => $this->request->getPost('formato'),
@@ -50,25 +45,33 @@ class Libro_controlador extends BaseController{
             'stock'   => $this->request->getPost('stock'),
         ];
 
-        // insert() con $returnID (true por defecto) regresa el id_libro recién creado
-        $idLibro = $libroModel->insert($data);
+        // 2. Intentamos insertar. El Modelo validará los datos automáticamente.
+        $idLibro = $libroModel->insert($dataLibro);
 
-        if ($idLibro) {
-            $libroAutorModel = new LibroAutor_modelo();
-            $autoresSeleccionados = $this->request->getPost('autores') ?? [];
-
-            foreach ($autoresSeleccionados as $idAutor) {
-                $libroAutorModel->insert([
-                    'libro_id' => $idLibro,
-                    'autor_id' => $idAutor,
-                ]);
-            }
-
-            session()->setFlashdata('exito', 'Libro registrado con éxito.');
-        } else {
-            session()->setFlashdata('error', 'No se pudo registrar el libro.');
+        if (!$idLibro) {
+            // Si fallan las validaciones del Modelo (ej. falta el título o el ISBN ya existe)
+            $db->transRollback(); // Cancelamos la transacción
+            return redirect()->back()->withInput()->with('errores', $libroModel->errors());
         }
 
-        return redirect()->to(site_url('Administrador/Libro/crear'));
+        // 3. Si el libro se guardó, insertamos las relaciones en la tabla pivote
+        $libroAutorModel = new LibroAutor_modelo();
+        $autoresSeleccionados = $this->request->getPost('autores');
+
+        foreach ($autoresSeleccionados as $idAutor) {
+            $libroAutorModel->insert([
+                'id_libro' => $idLibro,
+                'id_autor' => $idAutor,
+            ]);
+        }
+
+        $db->transComplete(); // Confirmamos la transacción
+
+        // 4. Verificamos si hubo un error a nivel de base de datos
+        if ($db->transStatus() === false) {
+            return redirect()->back()->withInput()->with('error', 'Error interno de base de datos al guardar.');
+        }
+
+        return redirect()->to(site_url('Administrador/Libro'))->with('exito', 'Libro registrado con éxito.');
     }
 }

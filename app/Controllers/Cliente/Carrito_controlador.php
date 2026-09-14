@@ -16,16 +16,6 @@ class Carrito_controlador extends BaseController
         $this->bookModel = new Libro_modelo();
     }
 
-    public function index()
-    {
-        $perPage = 6;
-        $data = [
-            'libros' => $this->bookModel->paginate($perPage),
-            'pager'  => $this->bookModel->pager,
-        ];
-        return view('index', $data);
-    }
-
     public function add()
     {
         $id = $this->request->getPost('id');

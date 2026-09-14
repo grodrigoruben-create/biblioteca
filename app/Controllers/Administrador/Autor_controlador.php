@@ -14,34 +14,24 @@ class Autor_controlador extends BaseController{
 
     public function crear()
     {
-        return view('Autor_crear');
+        return view('form_autor');
     }
-
     public function guardar()
     {
-        $rules = [
-            'nombre'       => 'required|min_length[2]|max_length[200]',
-            'apellidos'    => 'required|min_length[2]|max_length[200]',
-            'nacionalidad' => 'permit_empty|max_length[100]',
-        ];
-
-        if (!$this->validate($rules)) {
-            return view('Autor_crear', ['validation' => $this->validator]);
-        }
-
         $model = new Autor_modelo();
+        
         $data = [
             'nombre'       => $this->request->getPost('nombre'),
             'apellidos'    => $this->request->getPost('apellidos'),
             'nacionalidad' => $this->request->getPost('nacionalidad'),
         ];
 
+        // El insert() fallará automáticamente si no cumple las reglas del modelo
         if ($model->insert($data)) {
-            session()->setFlashdata('exito', 'Autor registrado con éxito.');
+            return redirect()->to(site_url('Administrador/Autor'))->with('exito', 'Autor registrado con éxito.');
         } else {
-            session()->setFlashdata('error', 'No se pudo registrar el autor.');
+            // Si falla, obtenemos los errores directamente del modelo con $model->errors()
+            return redirect()->back()->withInput()->with('errores', $model->errors());
         }
-
-        return redirect()->to(site_url('Administrador/Autor/crear'));
     }
 }
