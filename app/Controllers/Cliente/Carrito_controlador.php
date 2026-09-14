@@ -52,10 +52,10 @@ class Carrito_controlador extends BaseController
             $carrito[$itemKey]['subtotal'] = $carrito[$itemKey]['cantidad'] * $carrito[$itemKey]['precio'];
         } else {
             $carrito[$itemKey] = [
-                'id'       => $libro['id'],
+                'id'       => $libro['id_libro'], // FIX: la primary key real es 'id_libro', no 'id'
                 'isbn'     => $libro['isbn'],
                 'titulo'   => $libro['titulo'],
-                'autor'    => $libro['autor'],
+                'autor'    => $libro['autor'] ?? null, // FIX: 'autor' no existe en Libro_modelo; queda null hasta que se resuelva con join a Autor_modelo
                 'formato'  => $formato,
                 'precio'   => (float) $libro['precio'],
                 'cantidad' => $cantidad,

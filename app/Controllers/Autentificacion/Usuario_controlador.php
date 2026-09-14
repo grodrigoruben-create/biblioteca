@@ -9,13 +9,13 @@ class Usuario_controlador extends BaseController
 {
     public function loginForm()
     {
-        //helper(['form']);
+        helper(['form']);
         return view('Login');
     }
 
     public function registroForm()
     {
-        //helper(['form']);
+        helper(['form']);
         return view('Registro');
     }
 
@@ -25,19 +25,20 @@ class Usuario_controlador extends BaseController
         $rules = [
             'nombre' => 'required|min_length[3]|max_length[50]',
             'apellidos' => 'required|min_length[3]|max_length[50]',
-            'email' => 'required|valid_email|is_unique[usuarios.email]',
+            'email' => [
+                'rules' => 'required|valid_email|is_unique[usuarios.email]',
+                'errors' => [
+                    'is_unique' => 'El correo electrónico ya está registrado.'
+                ]
+            ], // FIX: 'errors' movido dentro de 'email' (antes estaba como clave hermana a nivel de $rules)
             'password' => [
                 'label' => 'Contraseña',
                 'rules' => 'required|min_length[8]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/]',
-            ],
-            'errors' => [
-
-                'regex_match' => 'La contraseña debe tener al menos 8 caracteres, incluyendo una letra mayúscula, una letra minúscula, un número y un carácter especial.',
-                'min_length' => 'La contraseña debe tener al menos 8 caracteres.',
-                'email' => [
-                    'is_unique' => 'El correo electrónico ya está registrado.'
-                ]
-            ]
+                'errors' => [
+                    'regex_match' => 'La contraseña debe tener al menos 8 caracteres, incluyendo una letra mayúscula, una letra minúscula, un número y un carácter especial.',
+                    'min_length' => 'La contraseña debe tener al menos 8 caracteres.',
+                ],
+            ], // FIX: mensajes de 'password' movidos dentro de la propia regla
         ];
        if (!$this->validate($rules)) {
             return view('Registro', [
@@ -85,38 +86,14 @@ class Usuario_controlador extends BaseController
 
             $session->set($sessionData);
             $session->regenerate();
-
-            return redirect()->to('dashboard'); // antes: return view('index')
+            
+                return redirect()->to('/dashboard'); // antes: return view('index')
         }
 
         $session->setFlashdata('msg_error', 'Correo o contraseña incorrectos.');
         return redirect()->to('/')->withInput();
     }
 
-    public function registerSave()
-    {
-
-        $session = session();
-        $model   = new Usuario_modelo();
-
-        $datos = [
-            'nombre'     => trim($this->request->getPost('nombre')),
-            'apellidos'  => trim($this->request->getPost('apellidos')),
-            'email'      => trim($this->request->getPost('email')),
-            'password'   => trim($this->request->getPost('password')),
-        ];
-        // Ejecución de registro con validación en el modelo
-        $resultado = $model->registrarCliente($datos);
-
-        if ($resultado['status']) {
-            $session->setFlashdata('msg_success', $resultado['message' ]);
-        } else {
-            $session->setFlashdata('msg_error', $resultado['message' ]);
-            $session->setFlashdata('open_modal', true); // Reabre el modal al fallar
-        }
-        return redirect()->to('/login');
-    }
-        
     public function logout ()
     {
         session()->destroy();

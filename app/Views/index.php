@@ -2,7 +2,7 @@
 /** @var \CodeIgniter\Pager\PagerInterface $pager */
 /** @var array $libros */
 ?>
-<! DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -73,21 +73,19 @@
         <div class="container d-flex justify-content-between align-items-center">
             <h1 class="h3 mb-0">Librería Universitaria</h1>
 
-            </a>
-                        <a
+            <a
                 href="<?= site_url('login') ?>"
                 class="btn btn-outline-secondary"
             >
                 Iniciar seccion
             </a>
-                        </a>
-                        <a
+            <a
                 href="<?= base_url('logout') ?>"
                 class="btn btn-outline-secondary"
             >
                 Cerrar sesión
             </a>
-            <form 
+            <form action="<?= site_url('libros/buscar') ?>" method="get">
             <label>
                 <input type="radio" name="filtro" value="1" checked> Buscar por autor
             </label>
@@ -105,6 +103,7 @@
             </div>
 
             <button type="submit">Buscar</button>
+            </form>
 
             <a href="<?= site_url('libreria/carrito') ?>" class="btn btn-primary">
                 <i class="bi bi-cart4"></i> (<?= count(session()->get('libro_carrito') ?? []) ?>)
@@ -131,7 +130,6 @@
                         <?php endif; ?>
 
                         <span class="badge isbn-badge w-auto me-auto mb-2">ISBN: <?= esc($libro['isbn']) ?></span>
-                        ...
                         <h2 class="book-title"><?= esc($libro['titulo']) ?></h2>
                         <p class="text-muted small">
                             Autor:
@@ -144,7 +142,7 @@
                         <div class="book-price mb-2">$<?= number_format($libro['precio'], 2) ?> MXN</div>
                         <form action="<?= site_url('libreria/carrito/agregar') ?>" method="post" class="mt-auto">
                             <?= csrf_field() ?>
-                            <input type="hidden" name="id" value="<?= $libro['id'] ?>">
+                            <input type="hidden" name="id" value="<?= $libro['id_libro'] ?>">
                             <div class="row g-2 mb-2">
                                 <div class="col-7">
                                     <select name="formato" class="form-select form-select-sm">
@@ -168,16 +166,6 @@
         <?= $pager->links('default', 'default_full') ?>
     </nav>
     <?php endif; ?>
-</body>
-
-<header class="bg-dark text-white py-3 mb-4 shadow-sm">
-    <div class="container d-flex justify-content-between align-items-center">
-        <h1 class="h3 mb-0">¡El conocimiento es poder!</h1>
-
-        <a href="<?= site_url('libreria/carrito') ?>" class="btn btn-primary">
-            Ver Carrito (<?= count(session()->get('libro_carrito') ?? []) ?>)
-        </a>
-    </div>
-</header>
+    </main>
 </body>
 </html>
