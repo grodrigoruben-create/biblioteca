@@ -1,45 +1,37 @@
 <?php
 
 use CodeIgniter\Router\RouteCollection;
-use App\Controllers\Cliente\Carrito_controlador;
-use App\Controllers\Autentificacion\Usuario_controlador;
-use App\Controllers\Dashboard_controlador;
-use App\Controllers\Libro_controlador;
-use App\Controllers\Autor_controlador;
 
 /**
  * @var RouteCollection $routes
  */
+$routes->get('/', 'Home::index');
 
-// Landing y Públicas (Catálogo principal)
-$routes->get('/', [Carrito_controlador::class, 'index']);
+// Rutas de Autenticación
+$routes->get('login', 'Autentificacion\Usuario_controlador::loginForm');
+$routes->post('login', 'Autentificacion\Usuario_controlador::LoginAuth');
+$routes->get('registro', 'Autentificacion\Usuario_controlador::registroForm');
+$routes->post('registro', 'Autentificacion\Usuario_controlador::register');
+$routes->get('logout', 'Autentificacion\Usuario_controlador::logout');
 
-// Autenticación
-$routes->get('login', [Usuario_controlador::class, 'loginForm']);
-$routes->post('login', [Usuario_controlador::class, 'LoginAuth']);
-$routes->get('registro', [Usuario_controlador::class, 'registroForm']);
-$routes->post('registro', [Usuario_controlador::class, 'register']);
-$routes->get('logout', [Usuario_controlador::class, 'logout']);
+// Rutas de la Librería / Cliente (Catálogo y Carrito)
+$routes->get('libreria', 'Cliente\Catalogo_controlador::index');
+$routes->get('libreria/catalogo', 'Cliente\Catalogo_controlador::index');
+$routes->post('libreria/carrito/add', 'Cliente\Carrito_controlador::add');
+$routes->get('libreria/carrito', 'Cliente\Carrito_controlador::show');
+$routes->get('libreria/carrito/eliminar/(:any)', 'Cliente\Carrito_controlador::remove/$1');
+$routes->get('libreria/carrito/vaciar', 'Cliente\Carrito_controlador::clear');
+$routes->get('libreria/buscar', 'Libro_controlador::buscar');
 
-// Rutas protegidas (Requieren sesión iniciada con el filtro 'auth')
-$routes->group('', ['filter' => 'auth'], function ($routes) {
-    $routes->get('dashboard', [Dashboard_controlador::class, 'index']);
+// Rutas de Administración y Dashboard (Protegidas)
+$routes->group('dashboard', ['filter' => 'auth'], static function ($routes) {
+    $routes->get('', 'Administrador\Dashboard_controlador::index');
+    
+    $routes->get('libro', 'Administrador\Libro_controlador::index');
+    $routes->get('libro/crear', 'Administrador\Libro_controlador::crear');
+    $routes->post('libro/guardar', 'Administrador\Libro_controlador::guardar');
 
-    // Gestión de Autores (Panel de Administración)
-    $routes->get('Administrador/Autor', [Autor_controlador::class, 'index']);
-    $routes->get('Administrador/Autor/crear', [Autor_controlador::class, 'crear']);
-    $routes->post('Administrador/Autor/guardar', [Autor_controlador::class, 'guardar']);
-
-    // Gestión de Libros (Panel de Administración)
-    $routes->get('Administrador/Libro', [Libro_controlador::class, 'index']);
-    $routes->get('Administrador/Libro/crear', [Libro_controlador::class, 'crear']);
-    $routes->post('Administrador/Libro/guardar', [Libro_controlador::class, 'guardar']);
+    $routes->get('autor', 'Administrador\Autor_controlador::index');
+    $routes->get('autor/crear', 'Administrador\Autor_controlador::crear');
+    $routes->post('autor/guardar', 'Administrador\Autor_controlador::guardar');
 });
-
-// Tienda y Carrito
-$routes->get('libreria/catalogo', [Carrito_controlador::class, 'index']);
-$routes->post('libreria/carrito/add', [Carrito_controlador::class, 'add']); // Corregido: coincide con el formulario (add en lugar de agregar)
-$routes->get('libreria/carrito', [Carrito_controlador::class, 'show']);
-$routes->get('libreria/carrito/eliminar/(:segment)', [Carrito_controlador::class, 'remove/$1']); // Corregido: se agrega '$1' para pasar la clave al método
-$routes->get('libreria/carrito/vaciar', [Carrito_controlador::class, 'clear']);
-$routes->get('libros/buscar', [Carrito_controlador::class, 'index']);
