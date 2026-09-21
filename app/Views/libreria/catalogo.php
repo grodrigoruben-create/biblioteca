@@ -52,21 +52,23 @@
                 <div class="col">
                     <div class="card h-100 book-card shadow-sm p-3">
                         <span class="badge isbn-badge w-auto me-auto mb-2">ISBN: <?= esc($libro['isbn']) ?></span>
+                        <!-- Validamos si existe la portada, de lo contrario mostramos una imagen por defecto -->
+                        <?php $rutaImagen = !empty($libro['portada']) ? base_url('uploads/' . $libro['portada']) : base_url('assets/img/default-book.png'); ?>
+
+                        <img src="<?= $rutaImagen ?>" class="card-img-top img-fluid mb-3" alt="Portada de <?= esc($libro['titulo']) ?>" style="max-height: 250px; object-fit: contain;">
+
                         <h2 class="book-title"><?= esc($libro['titulo']) ?></h2>
                         <p class="text-muted small">Autor: <?= esc($libro['autor']) ?></p>
                         <div class="book-price mb-2">$<?= number_format($libro['precio'], 2) ?> MXN</div>
                         <form action="<?= site_url('libreria/carrito/agregar') ?>" method="post" class="mt-auto">
                             <?= csrf_field() ?>
-                            <input type="hidden" name="id" value="<?= $libro['id'] ?>">
+                            <input type="hidden" name="id_libro" value="<?= $libro['id_libro'] ?>">
+                            <input type="hidden" name="formato" value="<?= esc($libro['formato']) ?>">
+                            <p class="mb-2">
+                                <span class="badge bg-secondary"><?= esc($libro['formato']) ?></span>
+                            </p>
                             <div class="row g-2 mb-2">
-                                <div class="col-7">
-                                    <select name="formato" class="form-select form-select-sm">
-                                        <option value="Físico Rústica">Rústica</option>
-                                        <option value="Tapa Dura">Tapa Dura</option>
-                                        <option value="Digital PDF">PDF Digital</option>
-                                    </select>
-                                </div>
-                                <div class="col-5">
+                                <div class="col-12">
                                     <input type="number" name="cantidad" value="1" min="1" max="<?= $libro['stock'] ?>" class="form-control form-control-sm">
                                 </div>
                             </div>
@@ -74,6 +76,7 @@
                                 <?= $libro['stock'] > 0 ? 'Agregar al Carrito' : 'Agotado' ?>
                             </button>
                         </form>
+
                     </div>
                 </div>
             <?php endforeach; ?>

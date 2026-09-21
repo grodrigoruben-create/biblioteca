@@ -2,38 +2,20 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrar libro</title>
+    <title>Registrar obra</title>
 </head>
-
 <body>
+    <h2>Registrar Obra</h2>
 
-    <h2>Registrar libro</h2>
+    <?php if (session()->getFlashdata('error')): ?>
+        <div style="color:red;"><?= session()->getFlashdata('error') ?></div>
+    <?php endif; ?>
 
     <form action="<?= base_url('libros/guardar') ?>" method="post" enctype="multipart/form-data">
+        <?= csrf_field() ?>
 
         <label for="titulo">Título</label><br>
-        <input type="text" name="titulo" id="titulo" maxlength="200" required>
-        <br><br>
-
-        <label for="isbn">ISBN</label><br>
-        <input type="text" name="isbn" id="isbn" maxlength="17" required>
-        <br><br>
-
-        <label for="formato">Formato</label><br>
-        <select name="formato" id="formato" required>
-            <option value="pasta dura">Pasta Dura</option>
-            <option value="rustico">Rústico</option>
-            <option value="digital">Digital</option>
-        </select>
-        <br><br>
-
-        <label for="precio">Precio</label><br>
-        <input type="number" name="precio" id="precio" step="0.01" min="0" required>
-        <br><br>
-
-        <label for="stock">Stock</label><br>
-        <input type="number" name="stock" id="stock" min="0" required>
+        <input type="text" name="titulo" id="titulo" maxlength="200" required value="<?= old('titulo') ?>">
         <br><br>
 
         <label for="portada">Portada</label><br>
@@ -41,22 +23,17 @@
         <br><br>
 
         <label for="autor_id">Autores</label><br>
-
         <?php $autores = $autores ?? []; ?>
-
         <select name="autor_id[]" id="autor_id" multiple required>
             <?php foreach ($autores as $a): ?>
-                <option value="<?= $a['id'] ?>">
+                <option value="<?= $a['id_autor'] ?>">
                     <?= esc($a['nombre'] . ' ' . $a['apellidos']) ?>
                 </option>
             <?php endforeach; ?>
         </select>
 
         <br><br>
-
-        <button type="submit">Guardar</button>
-
+        <button type="submit">Guardar y continuar con los formatos</button>
     </form>
-
 </body>
 </html>
