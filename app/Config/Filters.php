@@ -30,7 +30,8 @@ class Filters extends BaseFilters
         'honeypot'      => Honeypot::class,
         'invalidchars'  => InvalidChars::class,
         'secureheaders' => SecureHeaders::class,
-        'auth'          => \App\Filters\AuthFilter::class,
+        'Admin'         => \App\Filters\AdminFilter::class,
+        'Auth'          => \App\Filters\AuthFilter::class,
         'cors'          => Cors::class,
         'forcehttps'    => ForceHTTPS::class,
         'pagecache'     => PageCache::class,
@@ -73,8 +74,8 @@ class Filters extends BaseFilters
      */
     public array $globals = [
         'before' => [
+            'csrf', // ← descomentado: ahora sí se valida el token en cada POST
             // 'honeypot',
-            // 'csrf',
             // 'invalidchars',
         ],
         'after' => [
